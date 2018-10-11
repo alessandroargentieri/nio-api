@@ -32,6 +32,11 @@ public class RestHandler {
         return endpointList.stream().filter(end -> end.getPath().equals(path)).limit(1).collect(Collectors.toList()).get(0).getAction();
     }
 
+    public Action getEndpointIfMatches(String path){
+        return endpointList.stream().filter(end -> urlMatch(path, end.getPath())).limit(1).collect(Collectors.toList()).get(0).getAction();
+
+    }
+
     public String getJsonResponse() {
         return jsonResponse;
     }
@@ -74,4 +79,32 @@ public class RestHandler {
     public String getTextResponse() {
         return textResponse;
     }
+
+
+    private boolean urlMatch(String requestUrl, String endpointUrl){
+
+        if(!requestUrl.startsWith("/")) requestUrl = "/"+requestUrl;
+        if(!endpointUrl.startsWith("/")) endpointUrl = "/"+endpointUrl;
+
+        if(requestUrl.endsWith("/")) requestUrl = requestUrl.substring(0, requestUrl.length()-1);
+        if(endpointUrl.endsWith("/")) endpointUrl = endpointUrl.substring(0, endpointUrl.length()-1);
+
+        String[] split1 = requestUrl.split("/");
+        String[] split2 = endpointUrl.split("/");
+        if(split1.length != split2.length) return false;
+
+        for(int i=0; i<split1.length; i++){
+            String chunck1 = split1[i];
+            String chunck2 = split2[i];
+
+            if(!chunck1.equals(chunck2)){
+                if(!chunck2.startsWith("{") && !chunck2.endsWith("}")) return false;
+            }
+
+        }
+        return true;
+    }
+
+
+
 }

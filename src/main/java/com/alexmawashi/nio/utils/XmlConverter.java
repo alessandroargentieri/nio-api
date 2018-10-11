@@ -1,7 +1,14 @@
 package com.alexmawashi.nio.utils;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.xml.bind.JAXB;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
 
 public class XmlConverter<T> {
 
@@ -13,19 +20,19 @@ public class XmlConverter<T> {
         return instance;
     }
 
-    //TODO
-    public T getDataFromBodyRequest(HttpServletRequest request, Class clazz) throws IOException {
+    public Object getDataFromBodyRequest(HttpServletRequest request, Class clazz) throws IOException {
         StringBuilder sb = new StringBuilder();
         String s;
         while ((s = request.getReader().readLine()) != null) {
             sb.append(s);
         }
-        return null;
+        return JAXB.unmarshal(new StringReader(sb.toString()), clazz);
     }
 
-    //TODO
     public String getXmlOf(Object object){
-        return null;
+        StringWriter sw = new StringWriter();
+        JAXB.marshal(object, sw);
+        return sw.toString();
     }
 
 

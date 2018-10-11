@@ -1,12 +1,23 @@
 package com.quicktutorialz.nio.entities;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+@XmlRootElement
+@XmlAccessorType(XmlAccessType.NONE)
 public class User {
-    private final String id;
-    private final String name;
-    private final String date;
+    @XmlElement
+    private String id;
+    @XmlElement
+    private String name;
+    @XmlElement
+    private String date;
+
+    public User(){}
 
     public User(String name) {
         this.id = UUID.randomUUID().toString();

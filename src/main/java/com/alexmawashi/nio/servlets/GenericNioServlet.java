@@ -14,16 +14,14 @@ import java.nio.ByteBuffer;
 
 public class GenericNioServlet extends HttpServlet {
 
+
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
         String uri = request.getRequestURI();
-
-        response.setContentType("application/json");
         response.setStatus(HttpServletResponse.SC_OK);
-        RestHandler.getInstance().getEndpoint(uri).act(request, response);
 
-
+        RestHandler.getInstance().getEndpointIfMatches(uri).act(request, response);
 
         String jsonResponse = RestHandler.getInstance().getJsonResponse();
         nioResponse(request, response, jsonResponse);
@@ -73,6 +71,5 @@ public class GenericNioServlet extends HttpServlet {
             }
         });
     }
-
 
 }
