@@ -11,20 +11,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Map;
 
 public class GenericNioServlet extends HttpServlet {
 
-
     @Override
     protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
-        String uri = request.getRequestURI();
-        response.setStatus(HttpServletResponse.SC_OK);
-
-        RestHandler.getInstance().getEndpointIfMatches(uri).act(request, response);
-
-        String jsonResponse = RestHandler.getInstance().getJsonResponse();
-        nioResponse(request, response, jsonResponse);
+        //TODO: if it not matches manage the error
+        RestHandler.getInstance().getEndpointIfMatches(request.getRequestURI()).act(request, response);
+        nioResponse(request, response, RestHandler.getInstance().getJsonResponse());
     }
 
 
@@ -46,6 +41,13 @@ public class GenericNioServlet extends HttpServlet {
                 resp = RestHandler.getInstance().getXmlResponse();
                 break;
         }
+        Map<String, String> headers = RestHandler.getInstance().getHeaders();
+        if( !headers.isEmpty() ){
+            for (Map.Entry<String, String> entry : headers.entrySet()) {
+                response.setHeader(entry.getKey(), entry.getValue());
+            }
+        }
+
 
         ByteBuffer finalContent = ByteBuffer.wrap(resp.getBytes());
         AsyncContext async = request.startAsync();

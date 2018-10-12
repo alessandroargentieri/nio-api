@@ -22,6 +22,7 @@ public class JsonConverter<T> {
 
     Gson gson = new Gson();
 
+
     public T getDataFromBodyRequest(HttpServletRequest request, Class clazz) throws IOException {
         StringBuilder sb = new StringBuilder();
         String s;

@@ -1,9 +1,6 @@
 package com.quicktutorialz.nio;
 
-import com.alexmawashi.nio.annotations.Consumes;
-import com.alexmawashi.nio.annotations.POST;
-import com.alexmawashi.nio.annotations.Path;
-import com.alexmawashi.nio.annotations.Produces;
+import com.alexmawashi.nio.annotations.*;
 import com.alexmawashi.nio.utils.XmlConverter;
 import com.quicktutorialz.nio.entities.UserData;
 import com.quicktutorialz.nio.services.ReactiveService;
@@ -12,6 +9,7 @@ import com.alexmawashi.nio.utils.Action;
 import com.alexmawashi.nio.utils.JsonConverter;
 import com.alexmawashi.nio.utils.RestHandler;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -64,6 +62,20 @@ public class Endpoints {
                 .subscribe(res -> RestHandler.getInstance().setResponseToXml(res));
     };
 
+
+    @Path("/get/greetings")
+    @GET
+    @Produces("text/plain")
+    private Action getGreetings = (HttpServletRequest request, HttpServletResponse response) -> {
+        String param = request.getParameter("name");
+        String name = request.getQueryString();
+        String headerToken = request.getHeader("header-token");
+        //Cookie cookie = request.getCookies()[0];
+        //String cookieStr = cookie.getName() + " = " + cookie.getValue();
+        RestHandler.getInstance().addHeader("mykey", "myvalue").addHeader("mykey2", "myvalue2").setResponseToText(headerToken);
+
+    };
+
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     //associate paths to actions
@@ -71,8 +83,7 @@ public class Endpoints {
         RestHandler.getInstance()
                 .setEndpoint("/create/user/json", createUserJson)
                 .setEndpoint("/create/user/text", createUserText)
-                .setEndpoint("/create/user/xml",  createUserXml);
-
-
+                .setEndpoint("/create/user/xml",  createUserXml)
+                .setEndpoint("/get/greetings",    getGreetings);
     }
 }

@@ -1,7 +1,9 @@
 package com.alexmawashi.nio.utils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class RestHandler {
@@ -11,6 +13,7 @@ public class RestHandler {
     private volatile String textResponse;
     private volatile Object resp;
     private volatile String responseType;
+    private volatile Map<String, String> headers = new HashMap<>();
 
     private static RestHandler instance = null;
     public synchronized static RestHandler getInstance(){
@@ -80,6 +83,19 @@ public class RestHandler {
         return textResponse;
     }
 
+    public RestHandler setHeaders(Map<String, String> headers){
+        this.headers = headers;
+        return this;
+    }
+
+    public RestHandler addHeader(String key, String value){
+        headers.put(key, value);
+        return this;
+    }
+
+    public Map getHeaders(){
+        return headers;
+    }
 
     private boolean urlMatch(String requestUrl, String endpointUrl){
 
