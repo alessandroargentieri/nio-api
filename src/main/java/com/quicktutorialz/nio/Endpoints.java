@@ -14,18 +14,19 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 
-//TODO: utils che recuperano path params, query params, header params, cookies
-//TODO: utils che settano i cookie e l'header nella response
-//TODO: multipart, form, file upload
-//TODO: dependency injection
+
+//TODO: multipart, form, file upload (nio?) https://stackoverflow.com/questions/2422468/how-to-upload-files-to-server-using-jsp-servlet
 //TODO: logging
 //TODO: error responses
 //TODO: tests
+//TODO: extends Class
+
+//TODO: dependency injection (v2 of library)
 
 public class Endpoints {
 
     //inject services and components
-    private ReactiveService service = ReactiveServiceImpl.getInstance();
+    private final ReactiveService service = ReactiveServiceImpl.getInstance();
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -33,9 +34,9 @@ public class Endpoints {
     @POST
     @Consumes("application/json")
     @Produces("application/json")
-    private Action createUserJson = (HttpServletRequest request, HttpServletResponse response) -> {
+    private final Action createUserJson = (HttpServletRequest request, HttpServletResponse response) -> {
         //get Json Body request using JsonConverter
-        UserData userData = (UserData) JsonConverter.getInstance().getDataFromBodyRequest(request, UserData.class);
+        final UserData userData = (UserData) JsonConverter.getInstance().getDataFromBodyRequest(request, UserData.class);
         //business logic -> subscribe to response
         service.createUserCompletelyNIO(userData)
                 .subscribe(res -> RestHandler.getInstance().setResponseToJson(res));
@@ -45,19 +46,16 @@ public class Endpoints {
     @POST
     @Consumes("plain/text")
     @Produces("plain/text")
-    private Action createUserText = (HttpServletRequest request, HttpServletResponse response) -> {
-        UserData userData = (UserData) JsonConverter.getInstance().getDataFromBodyRequest(request, UserData.class);
+    private final Action createUserText = (HttpServletRequest request, HttpServletResponse response) -> {
+        final UserData userData = (UserData) JsonConverter.getInstance().getDataFromBodyRequest(request, UserData.class);
         service.createUserCompletelyNIO(userData)
                 .subscribe(res -> RestHandler.getInstance().setResponseToText(res));
     };
 
 
-    @Path("/create/user/xml")
-    @POST
-    @Consumes("application/xml")
-    @Produces("application/xml")
-    private Action createUserXml = (HttpServletRequest request, HttpServletResponse response) -> {
-        UserData userData = (UserData) XmlConverter.getInstance().getDataFromBodyRequest(request, UserData.class);
+    @Api(path = "/create/user/xml", method = "POST", consumes = "application/xml", produces = "application/xml", description = "")
+    private final Action createUserXml = (HttpServletRequest request, HttpServletResponse response) -> {
+        final UserData userData = (UserData) XmlConverter.getInstance().getDataFromBodyRequest(request, UserData.class);
         service.createUserCompletelyNIO(userData)
                 .subscribe(res -> RestHandler.getInstance().setResponseToXml(res));
     };
@@ -66,13 +64,21 @@ public class Endpoints {
     @Path("/get/greetings")
     @GET
     @Produces("text/plain")
-    private Action getGreetings = (HttpServletRequest request, HttpServletResponse response) -> {
+    private final Action getGreetings = (HttpServletRequest request, HttpServletResponse response) -> {
         String param = request.getParameter("name");
         String name = request.getQueryString();
         String headerToken = request.getHeader("header-token");
-        //Cookie cookie = request.getCookies()[0];
-        //String cookieStr = cookie.getName() + " = " + cookie.getValue();
-        RestHandler.getInstance().addHeader("mykey", "myvalue").addHeader("mykey2", "myvalue2").setResponseToText(headerToken);
+
+        Cookie cookie = new Cookie("CIAO", "12345");
+        cookie.setComment("This is a comment");
+        cookie.setDomain("localhost");
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(9999999);
+        cookie.setSecure(false);
+        cookie.setVersion(12);
+
+        RestHandler.getInstance().addHeader("mykey", "myvalue").addHeader("mykey2", "myvalue2").setCookie(cookie).setResponseToText(headerToken);
 
     };
 

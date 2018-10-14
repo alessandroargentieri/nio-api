@@ -23,7 +23,7 @@ public class JsonConverter<T> {
     Gson gson = new Gson();
 
 
-    public T getDataFromBodyRequest(HttpServletRequest request, Class clazz) throws IOException {
+    public synchronized T getDataFromBodyRequest(final HttpServletRequest request, final Class clazz) throws IOException {
         StringBuilder sb = new StringBuilder();
         String s;
         while ((s = request.getReader().readLine()) != null) {
@@ -32,7 +32,7 @@ public class JsonConverter<T> {
         return (T) gson.fromJson(sb.toString(), clazz);
     }
 
-    public String getJsonOf(Object object){
+    public synchronized String getJsonOf(final Object object){
         return gson.toJson(object);
     }
 

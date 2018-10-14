@@ -16,7 +16,7 @@ public class XmlConverter<T> {
         return instance;
     }
 
-    public Object getDataFromBodyRequest(HttpServletRequest request, Class clazz) throws IOException {
+    public synchronized Object getDataFromBodyRequest(final HttpServletRequest request, final Class clazz) throws IOException {
         StringBuilder sb = new StringBuilder();
         String s;
         while ((s = request.getReader().readLine()) != null) {
@@ -25,7 +25,7 @@ public class XmlConverter<T> {
         return JAXB.unmarshal(new StringReader(sb.toString()), clazz);
     }
 
-    public String getXmlOf(Object object){
+    public synchronized String getXmlOf(final Object object){
         StringWriter sw = new StringWriter();
         JAXB.marshal(object, sw);
         return sw.toString();

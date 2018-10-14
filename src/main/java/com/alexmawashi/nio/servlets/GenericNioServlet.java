@@ -19,11 +19,11 @@ public class GenericNioServlet extends HttpServlet {
     protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         //TODO: if it not matches manage the error
         RestHandler.getInstance().getEndpointIfMatches(request.getRequestURI()).act(request, response);
-        nioResponse(request, response, RestHandler.getInstance().getJsonResponse());
+        nioResponse(request, response);
     }
 
 
-    private synchronized void nioResponse(HttpServletRequest request, HttpServletResponse response, String jsonResponse) throws IOException {
+    private synchronized void nioResponse(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
         String resp=null;
         String responseType = RestHandler.getInstance().getResponseType();
@@ -49,9 +49,9 @@ public class GenericNioServlet extends HttpServlet {
         }
 
 
-        ByteBuffer finalContent = ByteBuffer.wrap(resp.getBytes());
-        AsyncContext async = request.startAsync();
-        ServletOutputStream out = response.getOutputStream();
+        final ByteBuffer finalContent = ByteBuffer.wrap(resp.getBytes());
+        final AsyncContext async = request.startAsync();
+        final ServletOutputStream out = response.getOutputStream();
         out.setWriteListener(new WriteListener() {
 
             @Override
