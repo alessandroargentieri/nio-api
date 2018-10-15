@@ -10,6 +10,9 @@ public abstract class Endpoints {
     protected JsonConverter jsonConverter = JsonConverter.getInstance();
     protected XmlConverter  xmlConverter  = XmlConverter.getInstance();
 
+    protected synchronized void setEndpoint(final String path, final Action action){
+        handler.setEndpoint(path, action);
+    }
 
     protected synchronized Object getDataFromJsonBodyRequest(HttpServletRequest request, Class clazz) throws IOException {
         return jsonConverter.getDataFromBodyRequest(request, clazz);

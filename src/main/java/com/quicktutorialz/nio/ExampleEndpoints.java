@@ -12,8 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 
 
 //TODO: multipart, form, file upload (nio?) https://stackoverflow.com/questions/2422468/how-to-upload-files-to-server-using-jsp-servlet
-//TODO: logging
-//TODO: error responses
+//TODO: predisposizione all'aggiunta di filtri
 //TODO: tests
 //TODO: valutare se anche l'input debba essere letto in maniera reattiva
 //
@@ -56,6 +55,18 @@ public class ExampleEndpoints extends Endpoints{
     };
 
 
+    @Api(path = "/create/user/xml/plus/header", method = "POST", consumes = "application/xml", produces = "application/xml", description = "")
+    private final Action createUserXmlPlusHeader = (HttpServletRequest request, HttpServletResponse response) -> {
+        final UserData userData = (UserData) getDataFromXmlBodyRequest(request, UserData.class);
+        service.createUserCompletelyNIO(userData)
+                .subscribe(res -> { response.setHeader("headerKey", "headerValue");
+                                    response.setHeader("jwt", "aaaaaa.bbbbbbb.ccccccc");
+                                    toXmlResponse(request, response, res);
+                                  },
+                            t  -> toXmlResponse(request, response, t)    );
+    };
+
+
     @Api(path = "/get/greetings", method = "GET", consumes = "", produces = "text/plain", description = "")
     private final Action getGreetings = (HttpServletRequest request, HttpServletResponse response) -> {
         String param = request.getParameter("name");
@@ -71,18 +82,16 @@ public class ExampleEndpoints extends Endpoints{
         cookie.setSecure(false);
         cookie.setVersion(12);
 
-        //RestHandler.getInstance().addHeader("mykey", "myvalue").addHeader("mykey2", "myvalue2").setCookie(cookie).toTextResponse(request, response, headerToken);
 
     };
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    //associate paths to actions
     public ExampleEndpoints(){
-        RestHandler.getInstance()
-                .setEndpoint("/create/user/json", createUserJson)
-                .setEndpoint("/create/user/text", createUserText)
-                .setEndpoint("/create/user/xml",  createUserXml)
-                .setEndpoint("/get/greetings",    getGreetings);
+        setEndpoint("/create/user/json", createUserJson);
+        setEndpoint("/create/user/text", createUserText);
+        setEndpoint("/create/user/xml",  createUserXml);
+        setEndpoint("/create/user/xml/plus/header",  createUserXmlPlusHeader);
+        setEndpoint("/get/greetings",    getGreetings);
     }
 }

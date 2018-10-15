@@ -1,5 +1,6 @@
 package com.alexmawashi.nio.utils;
 
+import com.alexmawashi.nio.annotations.Api;
 import javax.servlet.AsyncContext;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.WriteListener;
@@ -18,8 +19,7 @@ public class RestHandler {
 
     private final static Logger log = Logger.getLogger(RestHandler.class.getName());
 
-    //private volatile Map<String, String> headers = new HashMap<>();
-
+    /* Singleton Design pattern implementation */
     private static RestHandler instance = null;
     public synchronized static RestHandler getInstance(){
         if(instance == null){
@@ -31,63 +31,33 @@ public class RestHandler {
 
     private final List<Endpoint> endpointList = new ArrayList<>();
 
-    public final synchronized RestHandler setEndpoint(String path, Action action){
+    @Api(path = "/not-found", method = "", consumes = "", produces = "", description = "Error action")
+    private final Action notFoundError = (HttpServletRequest request, HttpServletResponse response) -> {
+        toJsonResponse(request, response, new Error(404, request.getRequestURI(), "Page not found"));
+    };
+    @Api(path = "/internal-server-error", method = "", consumes = "", produces = "", description = "Internal server error")
+    private final Action internalServerError = (HttpServletRequest request, HttpServletResponse response) -> {
+        toJsonResponse(request, response, new Error(500, request.getRequestURI(), request.getAttribute("internal-server-error").toString()));
+    };
+
+    private RestHandler(){
+        endpointList.add(new Endpoint("/not-found", notFoundError));
+        endpointList.add(new Endpoint("/internal-server-error", internalServerError));
+    }
+
+
+
+    public final synchronized RestHandler setEndpoint(final String path, final Action action){
         final Endpoint endpoint = new Endpoint(path, action);
         endpointList.add(endpoint);
         log.info(LocalTime.now() + ": added action to path " + path);
         return this;
     }
 
-    public final synchronized Action getEndpoint(final String path){
-        return endpointList.stream().filter(end -> end.getPath().equals(path)).limit(1).collect(Collectors.toList()).get(0).getAction();
-    }
-
     public final synchronized Action getEndpointIfMatches(final String path){
-        return endpointList.stream().filter(end -> urlMatch(path, end.getPath())).limit(1).collect(Collectors.toList()).get(0).getAction();
-
+        List<Endpoint> endpoints = endpointList.stream().filter(end -> urlMatch(path, end.getPath())).limit(1).collect(Collectors.toList());//.get(0).getAction();
+        return (endpoints.size()==1) ? endpoints.get(0).getAction(): getEndpointIfMatches("/not-found") ;
     }
-
-
-
-    /*public final synchronized RestHandler setHeaders(final Map<String, String> headers){
-        this.headers = headers;
-        return this;
-    }
-
-    public final synchronized RestHandler addHeader(final String key, final String value){
-        headers.put(key, value);
-        return this;
-    }
-
-    public final synchronized Map getHeaders(){
-        return headers;
-    }
-
-    public final synchronized RestHandler setCookie(final Cookie cookie){
-        StringBuilder builder = new StringBuilder();
-        if(StringUtil.isBlank(cookie.getName()) || StringUtil.isBlank(cookie.getValue())) return this;
-
-        builder.append(cookie.getName()).append("=").append(cookie.getValue()+"; ");
-        builder.append( StringUtil.isNotBlank(cookie.getPath()) ? "Path="+cookie.getPath()+"; " : "" );
-        builder.append( StringUtil.isNotBlank(cookie.getComment()) ? "Comment="+cookie.getComment()+"; " : "" );
-        builder.append( StringUtil.isNotBlank(cookie.getDomain()) ? "Domain="+cookie.getDomain()+"; " : "" );
-
-        builder.append( cookie.getMaxAge()!=0 ? "MaxAge="+cookie.getMaxAge()+"; " : "" );
-        builder.append( cookie.getSecure() ? "Secure; " : "" );
-        builder.append( cookie.getVersion()!=0 ? "Version="+cookie.getVersion()+"; " : "" );
-        builder.append( cookie.isHttpOnly() ? "HttpOnly; " : "" );
-
-        this.addHeader("Set-Cookie", builder.toString());
-        //resp.addHeader("Set-Cookie","SID=31d4d96e407aad42; Path=/; Secure; HttpOnly");
-        return this;
-    }
-
-    public final synchronized RestHandler setCookies(final Cookie[] cookies){
-        for(Cookie cookie : cookies){
-            this.setCookie(cookie);
-        }
-        return this;
-    }*/
 
     private synchronized boolean urlMatch(String requestUrl, String endpointUrl){
 
@@ -127,14 +97,6 @@ public class RestHandler {
     }
 
     private synchronized void nioResponse(HttpServletRequest request, HttpServletResponse response, final String resp) throws IOException {
-        /* TODO: lasciar incollare gli header e i cookie dalle action nella response in base al risultato della elaborazione reattiva
-        final Map<String, String> headers = getHeaders();
-        if( !headers.isEmpty() ){
-            for (Map.Entry<String, String> entry : headers.entrySet()) {
-                response.setHeader(entry.getKey(), entry.getValue());
-            }
-        }
-        */
 
         final ByteBuffer finalContent = ByteBuffer.wrap(resp.getBytes());
         final AsyncContext async = request.startAsync();
@@ -155,13 +117,10 @@ public class RestHandler {
 
             @Override
             public void onError(Throwable t) {
-                log.info(LocalDateTime.now().toString()+" | "+this.getClass().getName()+":"+t.toString());
+                log.info(LocalDateTime.now().toString()+" | "+this.getClass().getSimpleName()+":"+t.toString());
                 async.complete();
             }
         });
     }
-
-
-
 
 }
