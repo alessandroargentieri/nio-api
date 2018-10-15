@@ -1,5 +1,6 @@
 package com.quicktutorialz.nio;
 
+import com.alexmawashi.nio.jetty.JaNio;
 import com.alexmawashi.nio.jetty.Jetty;
 import com.alexmawashi.nio.servlets.GenericNioServlet;
 import com.alexmawashi.nio.servlets.StatusBlockingServlet;
@@ -13,13 +14,10 @@ import io.reactivex.Flowable;
 public class MainApplication {
 
     public static void main(String[] args) throws Exception {
-        Endpoints endpoints = new Endpoints();
-        new Jetty().port(8786)
-                   .endpoint(UploadServlet.class, "/upload")
-                   .endpoint(GenericNioServlet.class, "/*")
-                   .endpoint(StatusBlockingServlet.class, "/status")
-                   .start();
+        new JaNio().port(8786).endpoints(new ExampleEndpoints()).start();
     }
+
+
 
 
 }

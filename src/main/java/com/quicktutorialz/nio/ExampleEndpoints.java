@@ -1,14 +1,10 @@
 package com.quicktutorialz.nio;
 
 import com.alexmawashi.nio.annotations.*;
-import com.alexmawashi.nio.utils.XmlConverter;
+import com.alexmawashi.nio.utils.*;
 import com.quicktutorialz.nio.entities.UserData;
 import com.quicktutorialz.nio.services.ReactiveService;
 import com.quicktutorialz.nio.services.ReactiveServiceImpl;
-import com.alexmawashi.nio.utils.Action;
-import com.alexmawashi.nio.utils.JsonConverter;
-import com.alexmawashi.nio.utils.RestHandler;
-
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -19,51 +15,48 @@ import javax.servlet.http.HttpServletResponse;
 //TODO: logging
 //TODO: error responses
 //TODO: tests
-//TODO: extends Class
+//TODO: valutare se anche l'input debba essere letto in maniera reattiva
+//
 
 //TODO: dependency injection (v2 of library)
 
-public class Endpoints {
+public class ExampleEndpoints extends Endpoints{
 
     //inject services and components
     private final ReactiveService service = ReactiveServiceImpl.getInstance();
 
+
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    @Path("/create/user/json")
-    @POST
-    @Consumes("application/json")
-    @Produces("application/json")
+
+    @Api(path = "/create/user/json", method = "POST", consumes = "application/json", produces = "application/json", description = "")
     private final Action createUserJson = (HttpServletRequest request, HttpServletResponse response) -> {
-        //get Json Body request using JsonConverter
-        final UserData userData = (UserData) JsonConverter.getInstance().getDataFromBodyRequest(request, UserData.class);
-        //business logic -> subscribe to response
+        final UserData userData = (UserData) getDataFromJsonBodyRequest(request, UserData.class);
         service.createUserCompletelyNIO(userData)
-                .subscribe(res -> RestHandler.getInstance().setResponseToJson(res));
+                .subscribe(res -> toJsonResponse(request, response, res),
+                            t  -> toJsonResponse(request, response, t)    );
     };
 
-    @Path("/create/user/text")
-    @POST
-    @Consumes("plain/text")
-    @Produces("plain/text")
+
+    @Api(path = "/create/user/text", method = "POST", consumes = "plain/text", produces = "plain/text", description = "")
     private final Action createUserText = (HttpServletRequest request, HttpServletResponse response) -> {
-        final UserData userData = (UserData) JsonConverter.getInstance().getDataFromBodyRequest(request, UserData.class);
+        final UserData userData = (UserData) getDataFromJsonBodyRequest(request, UserData.class);
         service.createUserCompletelyNIO(userData)
-                .subscribe(res -> RestHandler.getInstance().setResponseToText(res));
+                .subscribe(res -> toTextResponse(request, response, res),
+                            t  -> toTextResponse(request, response, t)    );
     };
 
 
     @Api(path = "/create/user/xml", method = "POST", consumes = "application/xml", produces = "application/xml", description = "")
     private final Action createUserXml = (HttpServletRequest request, HttpServletResponse response) -> {
-        final UserData userData = (UserData) XmlConverter.getInstance().getDataFromBodyRequest(request, UserData.class);
+        final UserData userData = (UserData) getDataFromXmlBodyRequest(request, UserData.class);
         service.createUserCompletelyNIO(userData)
-                .subscribe(res -> RestHandler.getInstance().setResponseToXml(res));
+                .subscribe(res -> toXmlResponse(request, response, res),
+                            t  -> toXmlResponse(request, response, t)    );
     };
 
 
-    @Path("/get/greetings")
-    @GET
-    @Produces("text/plain")
+    @Api(path = "/get/greetings", method = "GET", consumes = "", produces = "text/plain", description = "")
     private final Action getGreetings = (HttpServletRequest request, HttpServletResponse response) -> {
         String param = request.getParameter("name");
         String name = request.getQueryString();
@@ -78,14 +71,14 @@ public class Endpoints {
         cookie.setSecure(false);
         cookie.setVersion(12);
 
-        RestHandler.getInstance().addHeader("mykey", "myvalue").addHeader("mykey2", "myvalue2").setCookie(cookie).setResponseToText(headerToken);
+        //RestHandler.getInstance().addHeader("mykey", "myvalue").addHeader("mykey2", "myvalue2").setCookie(cookie).toTextResponse(request, response, headerToken);
 
     };
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     //associate paths to actions
-    public Endpoints(){
+    public ExampleEndpoints(){
         RestHandler.getInstance()
                 .setEndpoint("/create/user/json", createUserJson)
                 .setEndpoint("/create/user/text", createUserText)

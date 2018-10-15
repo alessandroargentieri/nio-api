@@ -1,13 +1,16 @@
 package com.alexmawashi.nio.utils;
 
-import org.eclipse.jetty.util.StringUtil;
-
-import javax.servlet.http.Cookie;
+import javax.servlet.AsyncContext;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.WriteListener;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -15,12 +18,7 @@ public class RestHandler {
 
     private final static Logger log = Logger.getLogger(RestHandler.class.getName());
 
-    private volatile String jsonResponse;
-    private volatile String xmlResponse;
-    private volatile String textResponse;
-    private volatile Object resp;
-    private volatile String responseType;
-    private volatile Map<String, String> headers = new HashMap<>();
+    //private volatile Map<String, String> headers = new HashMap<>();
 
     private static RestHandler instance = null;
     public synchronized static RestHandler getInstance(){
@@ -49,50 +47,9 @@ public class RestHandler {
 
     }
 
-    public final synchronized String getJsonResponse() {
-        return jsonResponse;
-    }
 
-    public synchronized void setJsonResponse(final String jsonResponse) {
-        this.jsonResponse = jsonResponse;
-    }
 
-    public synchronized void setResponse(final Object response) {
-        this.resp = response;
-    }
-
-    public synchronized void setResponseToText(final Object response) {
-        this.responseType = "text";
-        this.textResponse = response.toString();
-    }
-
-    public synchronized void setResponseToJson(final Object response) {
-        this.responseType = "json";
-        this.jsonResponse = JsonConverter.getInstance().getJsonOf(response);
-    }
-
-    public synchronized void setResponseToXml(final Object response) {
-        this.responseType = "xml";
-        this.xmlResponse = XmlConverter.getInstance().getXmlOf(response);
-    }
-
-    public final synchronized String getResponseType() {
-        return responseType;
-    }
-
-    public final synchronized void setResponseType(final String responseType) {
-        this.responseType = responseType;
-    }
-
-    public final synchronized String getXmlResponse() {
-        return xmlResponse;
-    }
-
-    public final synchronized String getTextResponse() {
-        return textResponse;
-    }
-
-    public final synchronized RestHandler setHeaders(final Map<String, String> headers){
+    /*public final synchronized RestHandler setHeaders(final Map<String, String> headers){
         this.headers = headers;
         return this;
     }
@@ -121,9 +78,7 @@ public class RestHandler {
         builder.append( cookie.isHttpOnly() ? "HttpOnly; " : "" );
 
         this.addHeader("Set-Cookie", builder.toString());
-
         //resp.addHeader("Set-Cookie","SID=31d4d96e407aad42; Path=/; Secure; HttpOnly");
-
         return this;
     }
 
@@ -132,7 +87,7 @@ public class RestHandler {
             this.setCookie(cookie);
         }
         return this;
-    }
+    }*/
 
     private synchronized boolean urlMatch(String requestUrl, String endpointUrl){
 
@@ -156,6 +111,56 @@ public class RestHandler {
         }
         return true;
     }
+
+
+    public synchronized void toJsonResponse(HttpServletRequest request, HttpServletResponse response, Object resp) throws IOException {
+        response.setContentType("application/json");
+        nioResponse(request, response, JsonConverter.getInstance().getJsonOf(resp));
+    }
+    public synchronized void toXmlResponse(HttpServletRequest request, HttpServletResponse response, Object resp) throws IOException {
+        response.setContentType("application/xml");
+        nioResponse(request, response, XmlConverter.getInstance().getXmlOf(resp));
+    }
+    public synchronized void toTextResponse(HttpServletRequest request, HttpServletResponse response, Object resp) throws IOException {
+        response.setContentType("text/plain");
+        nioResponse(request, response, resp.toString());
+    }
+
+    private synchronized void nioResponse(HttpServletRequest request, HttpServletResponse response, final String resp) throws IOException {
+        /* TODO: lasciar incollare gli header e i cookie dalle action nella response in base al risultato della elaborazione reattiva
+        final Map<String, String> headers = getHeaders();
+        if( !headers.isEmpty() ){
+            for (Map.Entry<String, String> entry : headers.entrySet()) {
+                response.setHeader(entry.getKey(), entry.getValue());
+            }
+        }
+        */
+
+        final ByteBuffer finalContent = ByteBuffer.wrap(resp.getBytes());
+        final AsyncContext async = request.startAsync();
+        final ServletOutputStream out = response.getOutputStream();
+        out.setWriteListener(new WriteListener() {
+
+            @Override
+            public void onWritePossible() throws IOException {
+                while (out.isReady()) {
+                    if (!finalContent.hasRemaining()) {
+                        response.setStatus(200);
+                        async.complete();
+                        return;
+                    }
+                    out.write(finalContent.get());
+                }
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                log.info(LocalDateTime.now().toString()+" | "+this.getClass().getName()+":"+t.toString());
+                async.complete();
+            }
+        });
+    }
+
 
 
 
