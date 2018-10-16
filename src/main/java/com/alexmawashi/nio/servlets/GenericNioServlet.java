@@ -1,11 +1,14 @@
 package com.alexmawashi.nio.servlets;
 
 import com.alexmawashi.nio.utils.RestHandler;
+
+import javax.servlet.AsyncContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.logging.Logger;
 
@@ -15,6 +18,8 @@ public class GenericNioServlet extends HttpServlet {
 
     @Override
     protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        request.startAsync();
+        log.info(LocalDateTime.now()+" - " + this.getClass().getSimpleName() + " - start Async context from http request: " + request.getRequestURI());
         try{
             RestHandler.getInstance().getEndpointIfMatches(request.getRequestURI()).act(request, response);
         } catch (Exception e){

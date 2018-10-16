@@ -10,8 +10,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -82,6 +81,46 @@ public class RestHandler {
         return true;
     }
 
+    public synchronized Map<String, String> getPathVariables(final String path){
+        List<Map<String,String>> pathVariablesListMap = endpointList.stream()
+                    .filter(end -> urlMatch(path, end.getPath()))
+                    .limit(1)
+                    .map(end -> end.getPath())
+                    .map(p -> extractPathVariables(p, path)).collect(Collectors.toList());
+        return (!pathVariablesListMap.isEmpty()) ? pathVariablesListMap.get(0) : new HashMap<String, String>();
+    }
+
+    private Map<String, String> extractPathVariables(String endpointPath, String requestPath){
+
+        Map<String, String> pathVariables = new HashMap<>();
+
+        if(!requestPath.startsWith("/")) requestPath = "/"+requestPath;
+        if(!endpointPath.startsWith("/")) endpointPath = "/"+endpointPath;
+
+        if(requestPath.endsWith("/")) requestPath = requestPath.substring(0, requestPath.length()-1);
+        if(endpointPath.endsWith("/")) endpointPath = endpointPath.substring(0, endpointPath.length()-1);
+
+        String[] split1 = requestPath.split("/");
+        String[] split2 = endpointPath.split("/");
+
+        for(int i=0; i<split1.length; i++){
+            String chunck1 = split1[i];
+            String chunck2 = split2[i];
+
+            if(!chunck1.equals(chunck2)){
+                if(chunck2.startsWith("{") && chunck2.endsWith("}")) {
+                    String paramName = chunck2.replaceAll("\\{","")
+                           .replaceAll("\\}","")
+                           .replaceAll(" ", "");
+                    pathVariables.put(paramName, chunck1);
+                }
+            }
+        }
+        return pathVariables;
+    }
+
+
+
 
     public synchronized void toJsonResponse(HttpServletRequest request, HttpServletResponse response, Object resp) throws IOException {
         response.setContentType("application/json");
@@ -97,9 +136,9 @@ public class RestHandler {
     }
 
     private synchronized void nioResponse(HttpServletRequest request, HttpServletResponse response, final String resp) throws IOException {
-
+        response.addHeader("Access-Control-Allow-Origin", "*");
         final ByteBuffer finalContent = ByteBuffer.wrap(resp.getBytes());
-        final AsyncContext async = request.startAsync();
+        final AsyncContext async = request.getAsyncContext(); //request.startAsync();
         final ServletOutputStream out = response.getOutputStream();
         out.setWriteListener(new WriteListener() {
 
@@ -109,6 +148,7 @@ public class RestHandler {
                     if (!finalContent.hasRemaining()) {
                         response.setStatus(200);
                         async.complete();
+                        log.info(LocalDateTime.now()+" - " + this.getClass().getSimpleName() + " - close Async context from http request: " + request.getRequestURI());
                         return;
                     }
                     out.write(finalContent.get());

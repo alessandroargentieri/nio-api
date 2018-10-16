@@ -10,13 +10,12 @@ import io.reactivex.Flowable;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Observable;
 
 
 //TODO: multipart, form, file upload (nio?) https://stackoverflow.com/questions/2422468/how-to-upload-files-to-server-using-jsp-servlet
 //TODO: tests
 //TODO: valutare se anche l'input debba essere letto in maniera reattiva
-//
+
 
 //TODO: dependency injection (v2 of library)
 
@@ -41,7 +40,7 @@ public class ExampleEndpoints extends Endpoints{
     private final Action createUserJsonInputReactive = (HttpServletRequest request, HttpServletResponse response) -> {
         Flowable.just(request)
                 .map( req -> (UserData) getDataFromJsonBodyRequest(req, UserData.class))
-                .map(userData -> service.createUserCompletelyNIO(userData))
+                .flatMap(userData -> service.createUserCompletelyNIO(userData))
                 .subscribe(res -> toJsonResponse(request, response, res),
                             t  -> toJsonResponse(request, response, t)    );
     };
@@ -95,6 +94,17 @@ public class ExampleEndpoints extends Endpoints{
 
     };
 
+
+    @Api(path = "/get/path/variables/{name}/{surname}", method = "GET", consumes = "", produces = "text/plain", description = "")
+    private final Action getPathVariables = (HttpServletRequest request, HttpServletResponse response) -> {
+
+        Flowable.just(request)
+                .map(req -> getPathVariables(req))
+                .subscribe(map -> toTextResponse(request, response, map));
+    };
+
+
+
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     public ExampleEndpoints(){
@@ -104,5 +114,6 @@ public class ExampleEndpoints extends Endpoints{
         setEndpoint("/create/user/xml",  createUserXml);
         setEndpoint("/create/user/xml/plus/header",  createUserXmlPlusHeader);
         setEndpoint("/get/greetings",    getGreetings);
+        setEndpoint("/get/path/variables/{name}/{surname}", getPathVariables);
     }
 }
