@@ -6,6 +6,13 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 
+/**
+ * @author alessandroargentieri
+ *
+ * This class encapsulates the logic of conversion from and to Xml
+ * using JAXB library.
+ * @param <T>
+ */
 public class XmlConverter<T> {
 
     private static XmlConverter instance = null;

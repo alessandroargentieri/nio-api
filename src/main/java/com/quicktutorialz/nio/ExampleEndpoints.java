@@ -14,8 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 
 //TODO: multipart, form, file upload (nio?) https://stackoverflow.com/questions/2422468/how-to-upload-files-to-server-using-jsp-servlet
 //TODO: tests
-//TODO: valutare se anche l'input debba essere letto in maniera reattiva
-
+//TODO: valutare se anche l'input debba essere letto in maniera reattiva (adesso c'è startAsync + inputStream nel Flowable.just() )
 
 //TODO: dependency injection (v2 of library)
 
@@ -102,7 +101,6 @@ public class ExampleEndpoints extends Endpoints{
                 .map(req -> getPathVariables(req))
                 .subscribe(map -> toTextResponse(request, response, map));
     };
-
 
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

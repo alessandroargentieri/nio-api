@@ -5,6 +5,8 @@ import org.eclipse.jetty.servlet.ServletHandler;
 import org.eclipse.jetty.servlet.FilterMapping;
 
 /**
+ * @author alessandroargentieri
+ *
  * this class encapsulate the explicit and classic use of org.eclipse.jetty.server.Server libraries
  */
 public class Jetty {

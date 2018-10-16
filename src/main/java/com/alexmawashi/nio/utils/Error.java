@@ -2,6 +2,11 @@ package com.alexmawashi.nio.utils;
 
 import java.time.LocalDateTime;
 
+/**
+ * @author alessandroargentieri
+ *
+ * This pojo class encapsulates the error which will be sent in output in the case of failure
+ */
 public class Error {
     private int    code;
     private String path;

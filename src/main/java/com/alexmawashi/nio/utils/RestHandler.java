@@ -14,6 +14,12 @@ import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+/**
+ * @author alessandroargentieri
+ *
+ * Singleton class which contains all methods and data regarding Endpoints, Paths,
+ * Non-Blocking Output conversion and representation
+ */
 public class RestHandler {
 
     private final static Logger log = Logger.getLogger(RestHandler.class.getName());
@@ -38,12 +44,16 @@ public class RestHandler {
     private final Action internalServerError = (HttpServletRequest request, HttpServletResponse response) -> {
         toJsonResponse(request, response, new Error(500, request.getRequestURI(), request.getAttribute("internal-server-error").toString()));
     };
+    @Api(path = "/status", method = "", consumes = "", produces = "", description = "Check health")
+    private final Action checkHealth = (HttpServletRequest request, HttpServletResponse response) -> {
+        toJsonResponse(request, response, "{ \"status\": \"ok\"}");
+    };
 
     private RestHandler(){
         endpointList.add(new Endpoint("/not-found", notFoundError));
         endpointList.add(new Endpoint("/internal-server-error", internalServerError));
+        endpointList.add(new Endpoint("/status", checkHealth));
     }
-
 
 
     public final synchronized RestHandler setEndpoint(final String path, final Action action){
@@ -120,8 +130,6 @@ public class RestHandler {
     }
 
 
-
-
     public synchronized void toJsonResponse(HttpServletRequest request, HttpServletResponse response, Object resp) throws IOException {
         response.setContentType("application/json");
         nioResponse(request, response, JsonConverter.getInstance().getJsonOf(resp));
@@ -138,7 +146,7 @@ public class RestHandler {
     private synchronized void nioResponse(HttpServletRequest request, HttpServletResponse response, final String resp) throws IOException {
         response.addHeader("Access-Control-Allow-Origin", "*");
         final ByteBuffer finalContent = ByteBuffer.wrap(resp.getBytes());
-        final AsyncContext async = request.getAsyncContext(); //request.startAsync();
+        final AsyncContext async = request.getAsyncContext();
         final ServletOutputStream out = response.getOutputStream();
         out.setWriteListener(new WriteListener() {
 

@@ -1,5 +1,10 @@
 package com.alexmawashi.nio.jetty;
 
+/**
+ * @author alessandroargentieri
+ *
+ * pojo class which wrap the information regarding a custom servlet filter
+ */
 public class FilterItem {
     private final Class filterClass;
     private final String path;

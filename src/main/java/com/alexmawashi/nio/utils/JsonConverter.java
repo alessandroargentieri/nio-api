@@ -6,6 +6,8 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
 /**
+ * @author alessandroargentieri
+ *
  * Util class which encapsulate the use of Gson class to parse Json messages from the request to a Java class
  * and from a Java class to a Json string message
  * @param <T>
