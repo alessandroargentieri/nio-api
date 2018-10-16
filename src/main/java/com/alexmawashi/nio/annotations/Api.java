@@ -8,11 +8,9 @@ import java.lang.annotation.Target;
 @Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Api {
-    String path();
-    String method();
-    String consumes();
-    String produces();
-    String description();
-
-
+    String path()        default "/";
+    String method()      default "GET";
+    String consumes()    default "";
+    String produces()    default "plain/text";
+    String description() default "";
 }
