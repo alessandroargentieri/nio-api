@@ -10,9 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 
-
 //TODO: multipart, form, file upload (nio?) https://stackoverflow.com/questions/2422468/how-to-upload-files-to-server-using-jsp-servlet
-//TODO: predisposizione all'aggiunta di filtri
 //TODO: tests
 //TODO: valutare se anche l'input debba essere letto in maniera reattiva
 //
