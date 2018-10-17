@@ -11,21 +11,16 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-
-//TODO: multipart, form, file upload (nio?) https://stackoverflow.com/questions/2422468/how-to-upload-files-to-server-using-jsp-servlet
-//TODO: tests
-//TODO: valutare se anche l'input debba essere letto in maniera reattiva (adesso c'è startAsync + inputStream nel Flowable.just() )
-
-//TODO: dependency injection (v2 of library)
+//multipart, form, file upload (nio?) https://stackoverflow.com/questions/2422468/how-to-upload-files-to-server-using-jsp-servlet
+//valutare se anche l'input debba essere letto in maniera reattiva (adesso c'è startAsync + inputStream nel Flowable.just() )
+//dependency injection (v2 of library)
 
 public class ExampleEndpoints extends Endpoints{
 
     //inject services and components
     private final ReactiveService service = ReactiveServiceImpl.getInstance();
 
-
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 
     @Api(path = "/create/user/json", method = "POST", consumes = "application/json", produces = "application/json", description = "")
     private final Action createUserJson = (HttpServletRequest request, HttpServletResponse response) -> {
@@ -90,9 +85,10 @@ public class ExampleEndpoints extends Endpoints{
         cookie.setSecure(false);
         cookie.setVersion(12);
 
-
+        response.setHeader("Set-Cookie", cookie.toString());
+        response.setHeader("myKey1", "myValue1");
+        toTextResponse(request, response, headerToken);
     };
-
 
     @Api(path = "/get/path/variables/{name}/{surname}", method = "GET", consumes = "", produces = "text/plain", description = "")
     private final Action getPathVariables = (HttpServletRequest request, HttpServletResponse response) -> {
@@ -101,7 +97,6 @@ public class ExampleEndpoints extends Endpoints{
                 .map(req -> getPathVariables(req))
                 .subscribe(map -> toTextResponse(request, response, map));
     };
-
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
